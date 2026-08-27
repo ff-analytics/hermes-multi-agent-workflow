@@ -99,7 +99,7 @@ def get_workflows(token: str, location_id: str, limit: int) -> dict:
     data = _get(
         token,
         "/workflows/",
-        version="2021-04-15",
+        version="v3",
         params={"locationId": location_id},
     )
     workflows = data.get("workflows") or []
