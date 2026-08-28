@@ -53,6 +53,31 @@ Verified controls:
 
 End-to-end controlled test completed successfully: a disposable Support Ticket opportunity moved from `In Progress` to `Waiting on Client` only after the matching structured approval was recorded, and a governed live read verified the resulting target stage.
 
+### Web Dev → GitHub — VERIFIED
+
+The Web Dev controlled-access pilot is live for `ff-analytics/daily-brief` and has passed an end-to-end branch-only mutation test.
+
+Verified controls:
+
+- `web-dev` uses the profile-specific `web-dev-github` skill.
+- The governed reader is restricted to the configured repository and uses a separate fine-grained read token.
+- The host's broader `gh` credential is not part of the specialist workflow.
+- Read and write credentials are separate files with mode `0600` and are scoped to the same single repository.
+- The write credential has only the repository content capability needed for approved isolated-branch changes; Actions, Workflows, Pull Requests, administration, and similar broader scopes are not required for this pilot.
+- The governed change flow is `Read → Prepare → Human approval → Execute on isolated branch → Verify`.
+- Preparation records the exact default-branch SHA, file path, existing file state, proposed content hash, and deterministic `change_id` without mutating GitHub.
+- Execution attempted from an ordinary shell fails closed because execution is restricted to the `web-dev` Hermes continuation worker.
+- Human approval is machine-verifiable: the approval task must be `done` and completion metadata must contain exact `decision=approved` plus the matching `change_id`.
+- The continuation is bound to the exact approval task and change id.
+- Before writing, the executor confirms the configured repository, default-branch SHA, and target file state still match the prepared snapshot.
+- The executor creates only `hermes/approved-<change_id>` and writes only the exact approved file content.
+- `.github/workflows/` writes are denied in this pilot.
+- Direct default-branch writes, PR creation, and merge are outside this executor's scope.
+- Post-write verification reads the created branch through the governed reader and confirms the exact approved SHA-256.
+- Successful execution is recorded privately so replay does not repeat the mutation.
+
+End-to-end controlled test completed successfully with change `ghbranch-3b672313193d39336845`: the approved continuation created branch `hermes/approved-ghbranch-3b672313193d39336845`, added only `docs/hermes-web-dev-approval-gate-test.md`, verified the expected content hash, and left `main` unchanged. No PR or merge was created.
+
 ## Slack conversation layer
 
 The CEO Daily Brief Slack reader and the interactive specialist layer are intentionally separate.
@@ -80,7 +105,7 @@ The interactive design is:
 
 1. ~~Connect one read-first system to one specialist: CRM Automation → GHL.~~ VERIFIED
 2. ~~Validate read + prepare behavior and approval-gated mutation.~~ VERIFIED
-3. Add GitHub to Web Dev using the same policy gate.
+3. ~~Add GitHub to Web Dev using the same policy gate.~~ VERIFIED
 4. Add Slack interactive intake/reply bridge.
 5. Add Admin/Google and paid-media accounts.
 6. Add client-specific credential isolation and reusable client agent fleets.
