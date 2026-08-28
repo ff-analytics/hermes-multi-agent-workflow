@@ -78,17 +78,46 @@ Verified controls:
 
 End-to-end controlled test completed successfully with change `ghbranch-3b672313193d39336845`: the approved continuation created branch `hermes/approved-ghbranch-3b672313193d39336845`, added only `docs/hermes-web-dev-approval-gate-test.md`, verified the expected content hash, and left `main` unchanged. No PR or merge was created.
 
+### Slack front door → specialist handoff — VERIFIED
+
+The native Hermes Slack gateway is live in the DonorTraffic workspace using Socket Mode and has passed a real channel/thread specialist-routing test.
+
+Verified controls and behavior:
+
+- Hermes uses the native Slack gateway rather than a separate custom listener.
+- Slack app and bot authentication both passed against the DonorTraffic workspace.
+- The pilot app uses a reduced permission set: message/mention events, channel/DM history needed for the pilot, user lookup, file reads, chat replies, Agent view support, and no Slack slash commands.
+- The pilot is restricted to `#admin-assistant` (`C0AB4T14ATX`).
+- `SLACK_ALLOWED_USERS` currently includes Eddie and Anna only.
+- Top-level channel messages require `@Hermes` to start a session.
+- Once Hermes is active in a thread, follow-up human replies continue without another mention.
+- `ignore_other_user_mentions=true` prevents Hermes from butting into messages explicitly addressed to another human.
+- `allow_bots=none` keeps other bots/apps from triggering the Hermes agent loop in the pilot.
+- `#admin-assistant` is configured as the Slack home channel for gateway delivery.
+- Slack only presents one Hermes bot/front door; internal specialist execution remains visible in Kanban through the assigned profile.
+
+Live end-to-end routing test:
+
+1. Anna posted a top-level `@Hermes` request in `#admin-assistant` asking the CRM Automation specialist to inspect the DonorTraffic GoHighLevel `Support Tickets` pipeline read-only.
+2. Hermes created Kanban task `t_73ca9a6e`, titled `Inspect DonorTraffic GoHighLevel Support Tickets pipeline stages`.
+3. The task was assigned to `crm-automation`, and run `198` executed under profile `crm-automation`.
+4. The specialist used governed read access and returned the five stages: `New`, `Assigned`, `In Progress`, `Waiting on Client`, `Resolved`.
+5. A second governed read confirmed the same result; the task metadata/summary states that no CRM data changed.
+6. Hermes returned the specialist result to the originating Slack thread.
+
+This proves the complete read-only path: `Slack → Hermes front door → Kanban → crm-automation specialist → governed GHL read → Slack thread reply`.
+
 ## Slack conversation layer
 
 The CEO Daily Brief Slack reader and the interactive specialist layer are intentionally separate.
 
 The interactive design is:
 
-1. Slack event/mention arrives at the Hermes Slack intake bridge.
-2. Intake records channel, thread, author, message, and any explicitly mentioned specialist.
-3. If a specialist is explicitly mentioned, route there; otherwise use triage.
+1. Slack event/mention arrives at the Hermes Slack intake layer.
+2. Intake records channel, thread, author, message, and any explicitly requested specialist/domain.
+3. If a specialist is explicitly requested or the domain is clear, route there; otherwise use triage.
 4. The specialist may read thread context and approved connected systems.
-5. The specialist replies in the same Slack thread only when it has useful output.
+5. Hermes reports useful specialist output back into the originating Slack thread.
 6. Cross-specialist handoffs remain Kanban dependencies so ownership is visible.
 7. Any execution needing approval creates the existing `needs_input` human-approval card and a dependent continuation.
 8. After approval, the continuation resumes and reports the result back to the originating Slack thread.
@@ -96,7 +125,7 @@ The interactive design is:
 ### Noise controls
 
 - Do not have every specialist listen/respond to every message.
-- Explicit @mention wins over automatic triage.
+- Explicit @mention starts the Hermes channel conversation.
 - Automatic participation should require a task-like request or clear blocker.
 - One thread has one active owning specialist unless a dependency is deliberately created.
 - Status chatter should be suppressed; report only useful findings, requests for approval/input, and completion.
@@ -106,7 +135,7 @@ The interactive design is:
 1. ~~Connect one read-first system to one specialist: CRM Automation → GHL.~~ VERIFIED
 2. ~~Validate read + prepare behavior and approval-gated mutation.~~ VERIFIED
 3. ~~Add GitHub to Web Dev using the same policy gate.~~ VERIFIED
-4. Add Slack interactive intake/reply bridge.
+4. ~~Add Slack interactive intake/reply bridge and specialist handoff.~~ VERIFIED
 5. Add Admin/Google and paid-media accounts.
 6. Add client-specific credential isolation and reusable client agent fleets.
 
