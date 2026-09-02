@@ -3,7 +3,7 @@
 
 Safety model:
 - Preparation is read-only and records an immutable change request.
-- Execution is permitted only for crm-automation, only from a Hermes Kanban
+- Execution is permitted only for steward, only from a Hermes Kanban
   worker, and only when the matching human approval task is done with metadata
   {"decision":"approved","change_id":"..."}.
 - The current opportunity must still match the state observed at preparation.
@@ -259,8 +259,8 @@ def _request_human_approval(record: dict, human_owner: str, priority: int) -> di
         raise RuntimeError(
             "request-approval must run inside a Hermes Kanban worker"
         )
-    if source_profile != "crm-automation":
-        raise RuntimeError("only crm-automation may request this GHL approval")
+    if source_profile != "steward":
+        raise RuntimeError("only steward may request this GHL approval")
     if not APPROVAL_HELPER.exists():
         raise RuntimeError(f"approval helper not found: {APPROVAL_HELPER}")
 
@@ -302,7 +302,7 @@ def _request_human_approval(record: dict, human_owner: str, priority: int) -> di
         "--verification-summary",
         verification,
         "--resume-profile",
-        "crm-automation",
+        "steward",
         "--continuation-title",
         f"Execute approved GHL stage change {change_id}",
         "--continuation-body",
@@ -364,8 +364,8 @@ def _approval_metadata(conn: sqlite3.Connection, approval_task_id: str) -> dict:
 def _verify_execution_context(change_id: str, approval_task_id: str) -> dict:
     profile = os.environ.get("HERMES_PROFILE", "").strip()
     worker_task_id = os.environ.get("HERMES_KANBAN_TASK", "").strip()
-    if profile != "crm-automation":
-        raise RuntimeError("execution is restricted to crm-automation")
+    if profile != "steward":
+        raise RuntimeError("execution is restricted to steward")
     if not worker_task_id:
         raise RuntimeError("execution must run inside a Hermes Kanban continuation worker")
 
@@ -384,8 +384,8 @@ def _verify_execution_context(change_id: str, approval_task_id: str) -> dict:
         ).fetchone()
         if worker is None:
             raise RuntimeError("current continuation task not found")
-        if worker["assignee"] != "crm-automation":
-            raise RuntimeError("current continuation is not assigned to crm-automation")
+        if worker["assignee"] != "steward":
+            raise RuntimeError("current continuation is not assigned to steward")
         worker_body = str(worker["body"] or "")
         if change_id not in worker_body or approval_task_id not in worker_body:
             raise RuntimeError(
@@ -471,7 +471,7 @@ def _execute(change_id: str, approval_task_id: str) -> dict:
         "from_stage_id": record["expected_current_stage_id"],
         "to_stage_id": record["target_stage_id"],
         "to_stage_name": str(target_stage.get("name") or record.get("target_stage_name") or ""),
-        "executed_by_profile": "crm-automation",
+        "executed_by_profile": "steward",
         "continuation_task_id": os.environ.get("HERMES_KANBAN_TASK"),
         "executed_at": dt.datetime.now(dt.timezone.utc).isoformat(),
         "ghl_response_opportunity_id": str(
@@ -494,7 +494,7 @@ def main() -> None:
     p_prepare.add_argument("--opportunity-id", required=True)
     p_prepare.add_argument("--target-stage-id", required=True)
     p_prepare.add_argument("--reason", default="")
-    p_prepare.add_argument("--profile", default="crm-automation")
+    p_prepare.add_argument("--profile", default="steward")
 
     p_request = sub.add_parser(
         "request-approval",
@@ -525,7 +525,7 @@ def main() -> None:
             print(json.dumps({"ok": True, "change": result}, indent=2, ensure_ascii=False))
         elif args.command == "request-approval":
             record = _prepare(
-                "crm-automation",
+                "steward",
                 args.opportunity_id,
                 args.target_stage_id,
                 args.reason,

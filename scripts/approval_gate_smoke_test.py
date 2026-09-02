@@ -2,7 +2,7 @@
 """No-op smoke test for the Hermes human approval gate.
 
 This script never contacts GoHighLevel or any other external system. It exists
-only to prove that a crm-automation Kanban worker can create the existing human
+only to prove that a steward Kanban worker can create the existing human
 approval pair and that the dependent continuation refuses to proceed unless the
 approval task is completed with exact structured metadata.
 """
@@ -46,8 +46,8 @@ def request_approval(human_owner: str) -> dict:
     source_profile = os.environ.get("HERMES_PROFILE", "").strip()
     if not source_task_id:
         raise RuntimeError("request must run inside a Hermes Kanban worker")
-    if source_profile != "crm-automation":
-        raise RuntimeError("request is restricted to crm-automation")
+    if source_profile != "steward":
+        raise RuntimeError("request is restricted to steward")
     if not APPROVAL_HELPER.exists():
         raise RuntimeError(f"approval helper not found: {APPROVAL_HELPER}")
 
@@ -83,7 +83,7 @@ def request_approval(human_owner: str) -> dict:
         "--verification-summary",
         f"No-op smoke change_id={change_id}. No GHL API call or mutation is part of this test.",
         "--resume-profile",
-        "crm-automation",
+        "steward",
         "--continuation-title",
         f"Verify CRM approval gate {change_id}",
         "--continuation-body",
@@ -113,8 +113,8 @@ def request_approval(human_owner: str) -> dict:
 def verify(change_id: str, approval_task_id: str) -> dict:
     profile = os.environ.get("HERMES_PROFILE", "").strip()
     worker_task_id = os.environ.get("HERMES_KANBAN_TASK", "").strip()
-    if profile != "crm-automation":
-        raise RuntimeError("verification is restricted to crm-automation")
+    if profile != "steward":
+        raise RuntimeError("verification is restricted to steward")
     if not worker_task_id:
         raise RuntimeError("verification must run inside a Hermes Kanban continuation worker")
     if not KANBAN_DB.exists():
@@ -129,8 +129,8 @@ def verify(change_id: str, approval_task_id: str) -> dict:
         ).fetchone()
         if worker is None:
             raise RuntimeError("current continuation task not found")
-        if worker["assignee"] != "crm-automation":
-            raise RuntimeError("current continuation is not assigned to crm-automation")
+        if worker["assignee"] != "steward":
+            raise RuntimeError("current continuation is not assigned to steward")
         worker_body = str(worker["body"] or "")
         if change_id not in worker_body or approval_task_id not in worker_body:
             raise RuntimeError("continuation is not bound to this approval and change id")

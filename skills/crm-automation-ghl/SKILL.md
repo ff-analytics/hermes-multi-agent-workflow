@@ -9,7 +9,7 @@ metadata:
     category: crm
 ---
 
-# CRM Automation — GoHighLevel Read Access
+# Steward — GoHighLevel Read Access
 
 Use this skill when a CRM/automation task requires inspecting the DonorTraffic GoHighLevel sub-account.
 
@@ -27,7 +27,7 @@ This skill is **read-only**.
 ## Governed command
 
 ```bash
-python3 /home/ubuntu/hermes/.portfolio-audit/hermes-multi-agent-workflow/scripts/ghl_read_tool.py <command> --profile crm-automation
+python3 /home/ubuntu/hermes/.portfolio-audit/hermes-multi-agent-workflow/scripts/ghl_read_tool.py <command> --profile steward
 ```
 
 Available commands:
@@ -35,7 +35,7 @@ Available commands:
 ### Confirm account access
 
 ```bash
-python3 /home/ubuntu/hermes/.portfolio-audit/hermes-multi-agent-workflow/scripts/ghl_read_tool.py health --profile crm-automation
+python3 /home/ubuntu/hermes/.portfolio-audit/hermes-multi-agent-workflow/scripts/ghl_read_tool.py health --profile steward
 ```
 
 Use this only when connection/account identity needs verification.
@@ -43,7 +43,7 @@ Use this only when connection/account identity needs verification.
 ### List workflows
 
 ```bash
-python3 /home/ubuntu/hermes/.portfolio-audit/hermes-multi-agent-workflow/scripts/ghl_read_tool.py workflows --profile crm-automation --limit 20
+python3 /home/ubuntu/hermes/.portfolio-audit/hermes-multi-agent-workflow/scripts/ghl_read_tool.py workflows --profile steward --limit 20
 ```
 
 Use this to find workflow names, IDs, publish state, version, and updated timestamp.
@@ -51,7 +51,7 @@ Use this to find workflow names, IDs, publish state, version, and updated timest
 ### List pipelines and stages
 
 ```bash
-python3 /home/ubuntu/hermes/.portfolio-audit/hermes-multi-agent-workflow/scripts/ghl_read_tool.py pipelines --profile crm-automation --limit 20
+python3 /home/ubuntu/hermes/.portfolio-audit/hermes-multi-agent-workflow/scripts/ghl_read_tool.py pipelines --profile steward --limit 20
 ```
 
 Use this to inspect pipeline IDs, names, and stages.
@@ -59,13 +59,13 @@ Use this to inspect pipeline IDs, names, and stages.
 ### Search opportunities
 
 ```bash
-python3 /home/ubuntu/hermes/.portfolio-audit/hermes-multi-agent-workflow/scripts/ghl_read_tool.py opportunities --profile crm-automation --status all --limit 20
+python3 /home/ubuntu/hermes/.portfolio-audit/hermes-multi-agent-workflow/scripts/ghl_read_tool.py opportunities --profile steward --status all --limit 20
 ```
 
 Optional text filter:
 
 ```bash
-python3 /home/ubuntu/hermes/.portfolio-audit/hermes-multi-agent-workflow/scripts/ghl_read_tool.py opportunities --profile crm-automation --query "search text" --status all --limit 20
+python3 /home/ubuntu/hermes/.portfolio-audit/hermes-multi-agent-workflow/scripts/ghl_read_tool.py opportunities --profile steward --query "search text" --status all --limit 20
 ```
 
 ### Read one contact
@@ -73,7 +73,7 @@ python3 /home/ubuntu/hermes/.portfolio-audit/hermes-multi-agent-workflow/scripts
 Only after a task gives or legitimately discovers the contact ID:
 
 ```bash
-python3 /home/ubuntu/hermes/.portfolio-audit/hermes-multi-agent-workflow/scripts/ghl_read_tool.py contact --profile crm-automation --contact-id "CONTACT_ID"
+python3 /home/ubuntu/hermes/.portfolio-audit/hermes-multi-agent-workflow/scripts/ghl_read_tool.py contact --profile steward --contact-id "CONTACT_ID"
 ```
 
 Do not enumerate contacts just to collect data.

@@ -193,7 +193,7 @@ def get_contact(token: str, contact_id: str) -> dict:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Governed read-only GHL tool")
     parser.add_argument("command", choices=("health", "workflows", "pipelines", "opportunities", "contact"))
-    parser.add_argument("--profile", default="crm-automation")
+    parser.add_argument("--profile", default="steward")
     parser.add_argument("--query", default="")
     parser.add_argument("--status", default="all", choices=("open", "won", "lost", "abandoned", "all"))
     parser.add_argument("--contact-id", default="")

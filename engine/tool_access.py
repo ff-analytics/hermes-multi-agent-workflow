@@ -67,10 +67,12 @@ POLICY: dict[str, dict[str, FrozenSet[str]]] = {
         "google-ads": frozenset({READ, PREPARE}),
         "meta-ads": frozenset({READ, PREPARE}),
     },
-    "crm-automation": {
+    "steward": {
         "github": frozenset({READ, PREPARE}),
         "slack": frozenset({READ, PREPARE}),
-        "asana": frozenset({READ, PREPARE}),
+        "gmail": frozenset({READ, PREPARE}),
+        "calendar": frozenset({READ, PREPARE}),
+        "asana": frozenset({READ, PREPARE, EXECUTE}),
         "ghl": frozenset({READ, PREPARE, EXECUTE}),
     },
     "web-dev": {
