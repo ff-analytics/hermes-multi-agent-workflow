@@ -33,40 +33,6 @@ class AccessDecision:
 # Capabilities are intentionally narrow. Credentials should be separately
 # scoped to the minimum OAuth/API permissions required by these capabilities.
 POLICY: dict[str, dict[str, FrozenSet[str]]] = {
-    "director": {
-        "github": frozenset({READ, PREPARE}),
-        "slack": frozenset({READ, PREPARE}),
-        "gmail": frozenset({READ, PREPARE}),
-        "calendar": frozenset({READ, PREPARE}),
-        "asana": frozenset({READ, PREPARE}),
-        "ghl": frozenset({READ}),
-    },
-    "strategist": {
-        "github": frozenset({READ}),
-        "slack": frozenset({READ, PREPARE}),
-        "gmail": frozenset({READ}),
-        "calendar": frozenset({READ}),
-        "asana": frozenset({READ, PREPARE}),
-        "ghl": frozenset({READ}),
-    },
-    "copy-chief": {
-        "slack": frozenset({READ, PREPARE}),
-        "gmail": frozenset({READ, PREPARE}),
-        "github": frozenset({READ, PREPARE}),
-        "ghl": frozenset({READ, PREPARE}),
-    },
-    "data-ops": {
-        "github": frozenset({READ, PREPARE}),
-        "slack": frozenset({READ, PREPARE}),
-        "asana": frozenset({READ, PREPARE}),
-        "ghl": frozenset({READ, PREPARE}),
-    },
-    "paid-media": {
-        "slack": frozenset({READ, PREPARE}),
-        "asana": frozenset({READ, PREPARE}),
-        "google-ads": frozenset({READ, PREPARE}),
-        "meta-ads": frozenset({READ, PREPARE}),
-    },
     "steward": {
         "github": frozenset({READ, PREPARE}),
         "slack": frozenset({READ, PREPARE}),
@@ -74,19 +40,14 @@ POLICY: dict[str, dict[str, FrozenSet[str]]] = {
         "calendar": frozenset({READ, PREPARE}),
         "asana": frozenset({READ, PREPARE, EXECUTE}),
         "ghl": frozenset({READ, PREPARE, EXECUTE}),
+        "google-ads": frozenset({READ, PREPARE}),
+        "meta-ads": frozenset({READ, PREPARE}),
     },
     "web-dev": {
         "github": frozenset({READ, PREPARE, EXECUTE}),
         "slack": frozenset({READ, PREPARE}),
         "asana": frozenset({READ, PREPARE}),
         "website": frozenset({READ, PREPARE, EXECUTE}),
-    },
-    "admin-ops": {
-        "slack": frozenset({READ, PREPARE}),
-        "gmail": frozenset({READ, PREPARE}),
-        "calendar": frozenset({READ, PREPARE}),
-        "asana": frozenset({READ, PREPARE, EXECUTE}),
-        "ghl": frozenset({READ}),
     },
     "default": {
         "github": frozenset({READ}),
@@ -108,7 +69,15 @@ def authorize(profile: str, system: str, capability: str) -> AccessDecision:
     system = str(system or "").strip().lower()
     capability = str(capability or "").strip().lower()
 
-    allowed = POLICY.get(profile, POLICY["default"]).get(system, frozenset())
+    profile_policy = POLICY.get(profile)
+    if profile_policy is None:
+        return AccessDecision(
+            False,
+            False,
+            f"{profile} has no active tool-access policy",
+        )
+
+    allowed = profile_policy.get(system, frozenset())
     if capability not in allowed:
         return AccessDecision(
             False,

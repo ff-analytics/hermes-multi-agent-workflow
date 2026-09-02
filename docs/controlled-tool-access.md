@@ -32,18 +32,18 @@ This map can be tightened by client account so a specialist receives only the cl
 
 ## Verified implementation status
 
-### CRM Automation → GoHighLevel — VERIFIED
+### Steward → GoHighLevel — VERIFIED
 
 The first controlled-access pilot is live and has passed an end-to-end test against the DonorTraffic GHL sub-account.
 
 Verified controls:
 
-- `crm-automation` is a dedicated Hermes profile with isolated profile state.
-- A profile-specific `crm-automation-ghl` skill exposes governed read access only.
+- `steward` is the active Hermes operating profile for CRM/GHL coordination after the three-profile consolidation.
+- Steward uses the existing `crm-automation-ghl` skill name for compatibility; its governed commands now execute under `--profile steward`.
 - The read credential and write credential are separate files with mode `0600`.
 - The write credential is not used by the normal reader.
-- `engine/tool_access.py` allows GHL execute for `crm-automation` but marks it as requiring human approval.
-- The human approval helper creates an unassigned `needs_input` card plus a dependent continuation assigned back to `crm-automation`.
+- `engine/tool_access.py` allows GHL execute for `steward` but marks it as requiring human approval.
+- The human approval helper creates an unassigned `needs_input` card plus a dependent continuation assigned back to `steward`.
 - Approval is machine-verifiable: the approval task must be `done` and its completion metadata must contain the exact `decision=approved` and matching `change_id`.
 - The continuation must be bound to the same approval task and change id.
 - The executor checks the live GHL opportunity still matches the prepared pipeline/stage snapshot before writing.
@@ -52,6 +52,8 @@ Verified controls:
 - Tirith is available on the system PATH for Hermes command scanning.
 
 End-to-end controlled test completed successfully: a disposable Support Ticket opportunity moved from `In Progress` to `Waiting on Client` only after the matching structured approval was recorded, and a governed live read verified the resulting target stage.
+
+The GHL controls were later migrated from the retired `crm-automation` profile to `steward`. Post-migration verification confirmed that Steward can perform governed GHL reads, GHL execute remains human-approval gated, and the retired `crm-automation` identity has no active tool-access policy.
 
 ### Web Dev → GitHub — VERIFIED
 
@@ -98,14 +100,14 @@ Verified controls and behavior:
 
 Live end-to-end routing test:
 
-1. Anna posted a top-level `@Hermes` request in `#admin-assistant` asking the CRM Automation specialist to inspect the DonorTraffic GoHighLevel `Support Tickets` pipeline read-only.
+1. Anna posted a top-level `@Hermes` request in `#admin-assistant` asking Hermes to inspect the DonorTraffic GoHighLevel `Support Tickets` pipeline read-only.
 2. Hermes created Kanban task `t_73ca9a6e`, titled `Inspect DonorTraffic GoHighLevel Support Tickets pipeline stages`.
-3. The task was assigned to `crm-automation`, and run `198` executed under profile `crm-automation`.
+3. At the time of the original verification, the task was assigned to `crm-automation`, and run `198` executed under profile `crm-automation`. That profile has since been retired and its governed CRM/GHL responsibilities migrated to `steward`.
 4. The specialist used governed read access and returned the five stages: `New`, `Assigned`, `In Progress`, `Waiting on Client`, `Resolved`.
 5. A second governed read confirmed the same result; the task metadata/summary states that no CRM data changed.
 6. Hermes returned the specialist result to the originating Slack thread.
 
-This proves the complete read-only path: `Slack → Hermes front door → Kanban → crm-automation specialist → governed GHL read → Slack thread reply`.
+The original test proved the complete read-only specialist handoff. After the profile consolidation, the current governed path is: `Slack → Hermes front door → Kanban → steward → governed GHL read → Slack thread reply`.
 
 ## Slack conversation layer
 
